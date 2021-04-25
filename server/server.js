@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
+const mongoose = require('mongoose');
 
 require('dotenv').config();
 
@@ -12,22 +13,17 @@ app.use(express.json());
 
 const uri = process.env.ATLAS_URI;
 
-async function main() {
-    const client = new MongoClient(uri);
+mongoose.connect(uri, {useNewUrlParser: true, useCreateIndex: true });
+const connection = mongoose.connection;
+connection.once('open', () => {
+    console.log("MongoDB database connection is working");
+})
 
-    try {
-        await client.connect();
-        
-        console.log('mongodb is connected yeeeeey');
-    } catch(e) {
-        console.log(`Deu ruim demais!!! ${e}}`)
-    } finally {
-        await client.close();
-        console.log('client fechou kkkkk')
-    }
-}
+const exercisesRouter = require('./routes/exercises');
+const usersRouter = require('./routes/users');
 
-main().catch(console.error)
+app.use('/exercises', exercisesRouter);
+app.use('/users', usersRouter);
 
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);
